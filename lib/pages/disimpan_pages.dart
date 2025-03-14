@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:aplikasi_galeri_baru/foto_screen/detail_foto_simpan_screen.dart';
 import 'package:aplikasi_galeri_baru/widget/grid_foto_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -259,7 +260,6 @@ class _DisimpanPagesState extends State<DisimpanPages>{
           id: int.parse(photoId),
           imageUrl: photoUrl,
           date: dateStr,
-
         ));
       }
     }
@@ -279,6 +279,38 @@ class _DisimpanPagesState extends State<DisimpanPages>{
           print('Group ${group.date}: ${group.items.length} items');
         }
       });
+    }
+  }
+
+  void _handlePhotoTap(GridItem item) {
+    final allItems = groups.expand((group) => group.items).toList();
+    final index = allItems.indexWhere((photo) => photo.id == item.id);
+
+    if (index != -1) {
+      final photoInfos = allItems.map((item) =>
+          PhotoInfo(
+            file: item.imageUrl,
+            date: item.date,
+            id: item.id,
+            username: 'User',
+            uploaderId: '',
+            isSaved: true,
+          )
+      ).toList();
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DetailFotoSimpanScreen(
+            photoInfos: photoInfos,
+            initialIndex: index,
+            onPhotoDeleted: () {
+              // Refresh the saved photos list when a photo is unsaved
+              _fetchAndUpdateSaved();
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -314,9 +346,7 @@ class _DisimpanPagesState extends State<DisimpanPages>{
     return PinterestStyleGrid(
       groups: groups,
       scrollController: widget.scrollController,
-      onTapPhoto: (item) {
-
-      },
+      onTapPhoto: _handlePhotoTap,
     );
   }
 }
